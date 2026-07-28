@@ -128,7 +128,7 @@ steps:
 
 We can run `uv run consort-yaml my_chart.yaml` to get the Mermaid diagram as output:
 
-```mermaid
+```
 ---
 config:
     theme: base
