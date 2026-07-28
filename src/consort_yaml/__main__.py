@@ -1,17 +1,17 @@
+"""CLI entry point for consort_yaml."""
+
 import argparse
-import yaml
 
-from consort_yaml import (
-    FlowchartBuilder,
-    load_yaml, 
-    HEADER,
-    ARROW, 
-    EXCLUSION_ARROW, 
-    EXCLUSION_ARROW_LONG,
-    INDENT
-)
+from consort_yaml import FlowchartBuilder, load_yaml
 
-if __name__ == "__main__":
+
+def main() -> None:
+    """
+    Parse command-line arguments and print a Mermaid flowchart.
+
+    Reads a YAML file specified by the user and prints the
+    corresponding Mermaid flowchart to stdout.
+    """
     parser = argparse.ArgumentParser(
         description="Generate a CONSORT flowchart from YAML."
     )
@@ -21,3 +21,7 @@ if __name__ == "__main__":
     data = load_yaml(args.path)
     builder = FlowchartBuilder()
     print(builder.build(data))
+
+
+if __name__ == "__main__":
+    main()

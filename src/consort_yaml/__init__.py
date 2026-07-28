@@ -1,4 +1,30 @@
-import sys
+"""
+Generate CONSORT-style flowcharts as Mermaid diagrams from YAML.
+
+This package provides a ``FlowchartBuilder`` that converts a YAML
+definition (steps, exclusions, subgraphs) into a Mermaid flowchart
+string suitable for rendering with ``mmdc`` or any Mermaid renderer.
+
+Example:
+    >>> from consort_yaml import FlowchartBuilder, load_yaml
+    >>> data = load_yaml("tcga.yaml")
+    >>> builder = FlowchartBuilder()
+    >>> print(builder.build(data))
+"""
+
+import yaml
+
+__version__ = "0.1.0"
+
+__all__ = [
+    "FlowchartBuilder",
+    "load_yaml",
+    "HEADER",
+    "INDENT",
+    "ARROW",
+    "EXCLUSION_ARROW",
+    "EXCLUSION_ARROW_LONG",
+]
 
 INDENT = "    "
 ARROW = " ---> "
@@ -25,20 +51,33 @@ flowchart TD
     classDef sg fill:transparent,stroke-width:1,stroke:black
 """
 
+
 def load_yaml(path: str) -> dict:
+    """
+    Load a YAML file and return its contents as a dictionary.
+
+    Args:
+        path (str): Path to the YAML file.
+
+    Returns:
+        dict: Parsed YAML contents.
+    """
     with open(path, "r") as f:
         return yaml.safe_load(f)
 
-class FlowchartBuilder:
-    """Builds a Mermaid flowchart from a CONSORT-style YAML definition.
 
-    Supports steps, exclusions, and arbitrarily nested subgraphs. Each subgraph
-    supports the same internal structure as the outer graph (steps, exclusions,
-    further subgraphs) and its direction can be specified via the ``direction``
-    key in the YAML (default ``TD``).
+class FlowchartBuilder:
+    """
+    Builds a Mermaid flowchart from a CONSORT-style YAML definition.
+
+    Supports steps, exclusions, and arbitrarily nested subgraphs. Each
+    subgraph supports the same internal structure as the outer graph
+    (steps, exclusions, further subgraphs) and its direction can be
+    specified via the ``direction`` key in the YAML (default ``TD``).
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialise the builder with empty state."""
         self._step_counter = 0
         self._exclusion_counter = 0
         self._subgraph_counter = 0
@@ -48,37 +87,68 @@ class FlowchartBuilder:
         self._body_lines: list[str] = []
 
     def _next_step_id(self) -> str:
+        """Return the next unique step node ID."""
         sid = f"step{self._step_counter}"
         self._step_counter += 1
         return sid
 
     def _next_exclusion_id(self) -> str:
+        """Return the next unique exclusion node ID."""
         eid = f"exclusion{self._exclusion_counter}"
         self._exclusion_counter += 1
         return eid
 
     def _next_subgraph_id(self) -> str:
+        """Return the next unique subgraph ID."""
         sgid = f"sg{self._subgraph_counter}"
         self._subgraph_counter += 1
         return sgid
 
     @staticmethod
     def _format_node(node_id: str, message: str, n: int) -> str:
+        """Format a Mermaid node definition string.
+
+        Args:
+            node_id (str): The node identifier.
+            message (str): The label text (may contain HTML).
+            n (int): The sample count.
+
+        Returns:
+            str: A Mermaid node definition string.
+        """
         return f'{node_id}["{message}<br>(n={n})"]'
 
-    def _emit_node(self, node_id: str, message: str, n: int, indent: int) -> None:
+    def _emit_node(
+        self, node_id: str, message: str, n: int, indent: int
+    ) -> None:
+        """
+        Append a formatted node line to the body.
+
+        Args:
+            node_id (str): The node identifier.
+            message (str): The label text.
+            n (int): The sample count.
+            indent (int): The indentation level.
+        """
         self._body_lines.append(
             INDENT * indent + self._format_node(node_id, message, n)
         )
 
     def _process_exclusions(
-        self, exclusions: list, n: int, indent: int
+        self, exclusions: list[dict], n: int, indent: int
     ) -> tuple[str, int]:
-        """Process exclusions for a step.
+        """
+        Process exclusions for a step.
+
+        Args:
+            exclusions (list[dict]): List of exclusion dicts with
+                ``reason`` (str) and ``n`` (int).
+            n (int): Current sample count.
+            indent (int): Indentation level.
 
         Returns:
-            A connection suffix string (e.g. ``" ---- excl1 --- excl2"``) and
-            the updated sample count ``n``.
+            tuple[str, int]: A connection suffix string and the
+            updated sample count.
         """
         connection = ""
         for i, exclusion in enumerate(exclusions):
@@ -95,11 +165,19 @@ class FlowchartBuilder:
     ) -> tuple[str, int]:
         """Process a subgraph block.
 
-        The step's ``name`` becomes the subgraph label. Sub-steps are processed
-        recursively, supporting exclusions and nested subgraphs.
+        The step's ``name`` becomes the subgraph label. Sub-steps are
+        processed recursively, supporting exclusions and nested
+        subgraphs.
+
+        Args:
+            step (dict): The step definition containing a ``subgraph``
+                key.
+            n (int): Current sample count.
+            indent (int): Indentation level.
 
         Returns:
-            The subgraph ID and the updated sample count ``n``.
+            tuple[str, int]: The subgraph ID and the updated sample
+            count.
         """
         sg_id = self._next_subgraph_id()
         label = step.get("name", "")
@@ -108,7 +186,9 @@ class FlowchartBuilder:
         self._subgraph_ids.append(sg_id)
 
         self._body_lines.append(INDENT * indent + f"subgraph {sg_id} [{label}]")
-        self._body_lines.append(INDENT * (indent + 1) + f"direction {direction}")
+        self._body_lines.append(
+            INDENT * (indent + 1) + f"direction {direction}"
+        )
 
         inner_conn, n = self._process_steps(
             subgraph_def["steps"], n, indent + 1, in_subgraph=True
@@ -120,21 +200,31 @@ class FlowchartBuilder:
         return sg_id, n
 
     def _process_steps(
-        self, steps: list, n: int, indent: int = 1,
+        self,
+        steps: list[dict],
+        n: int,
+        indent: int = 1,
         in_subgraph: bool = False,
     ) -> tuple[str, int]:
         """Process a list of steps.
 
-        Each step may contain ``exclusions`` and/or a ``subgraph`` of sub-steps.
-        Exclusions are processed first (decrementing ``n``), then the step node
-        or subgraph is created with the updated ``n``.
+        Each step may contain ``exclusions`` and/or a ``subgraph`` of
+        sub-steps. Exclusions are processed first (decrementing ``n``),
+        then the step node or subgraph is created with the updated
+        ``n``.
+
+        Args:
+            steps (list[dict]): List of step definitions.
+            n (int): Current sample count.
+            indent (int, optional): Indentation level. Defaults to 1.
+            in_subgraph (bool, optional): Whether these steps are
+                inside a subgraph. Defaults to False.
 
         Returns:
-            A connection string (e.g. ``"step0 ---> step1 ---- excl1"``) and
-            the updated sample count ``n``.
+            tuple[str, int]: A connection string and the updated
+            sample count.
         """
         parts: list[str] = []
-
         default_arrow = " --> " if in_subgraph else ARROW
 
         for step in steps:
@@ -180,7 +270,16 @@ class FlowchartBuilder:
         return connection, n
 
     def build(self, data: dict) -> str:
-        """Build the complete Mermaid flowchart string from parsed YAML data."""
+        """
+        Build the complete Mermaid flowchart string.
+
+        Args:
+            data (dict): Parsed YAML data with ``n`` (int) and
+                ``steps`` (list[dict]) keys.
+
+        Returns:
+            str: A complete Mermaid flowchart string.
+        """
         n = data["n"]
         connection, _ = self._process_steps(data["steps"], n)
 
@@ -198,4 +297,3 @@ class FlowchartBuilder:
                 f"{INDENT}class " + ",".join(self._subgraph_ids) + " sg"
             )
         return "\n".join(lines)
-
