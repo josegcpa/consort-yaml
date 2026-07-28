@@ -126,7 +126,7 @@ steps:
           link: none
 ```
 
-We can run `uv run consort-yaml my_chart.yaml` to get the Mermaid diagram as output:
+We can run `uv run consort-yaml example/example-consort.yaml > example/example-consort.mmd` to get the Mermaid diagram as output:
 
 ```
 ---
@@ -173,8 +173,8 @@ And then convert this to PNG using `mmdc -i example/example-consort.mmd -o examp
 
 ![Example CONSORT diagram](example/example-consort.png)
 
-Running everything:
+Running everything as a single line:
 
 ```bash
-uv run consort-yaml my_chart.yaml > chart.mermaid && mmdc -i chart.mermaid -o chart.svg
+uv run consort-yaml example/example-consort.yaml > example/example-consort.mmd && mmdc -i example/example-consort.mmd -o example/example-consort.png -s 4
 ```
