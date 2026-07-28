@@ -1,0 +1,25 @@
+---
+n: 300
+steps:
+  - name: "Histopathology dataset"
+  - name: "Run Classpose"
+    exclusions:
+    - reason: Samples have poor quality
+      n: 25
+    - reason: Samples have no MPP information
+      n: 10
+  - name: "Feature extraction"
+  - name: "Feature summarisation"
+  - name: "Model training"
+    subgraph:
+      direction: TB
+      steps:
+        - name: "<i>Gene1</i>mut prediction"
+          link: none
+          exclusions:
+            - reason: <i>Gene1</i> mutation status not available
+              n: 25
+        - name: "<i>Gene2</i>mut prediction"
+          link: none
+        - name: "<i>Gene3</i>mut prediction"
+          link: none

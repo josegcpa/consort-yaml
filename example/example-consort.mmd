@@ -1,0 +1,38 @@
+---
+config:
+    theme: base
+    themeVariables:
+        fontFamily: helvetica
+    flowchart:
+        rankSpacing: 15
+        nodeSpacing: 15
+        subGraphTitleMargin:
+            top: 10
+            bottom: 10
+            left: 0
+            right: 0
+---
+flowchart TD
+    classDef exclusion fill:#ffdada,stroke-width:1,stroke:black
+    classDef step fill:white,stroke-width:1,stroke:black
+    classDef sg fill:transparent,stroke-width:1,stroke:black
+
+
+    step0["Histopathology dataset<br>(n=300)"]
+    exclusion0["Samples have poor quality<br>(n=25)"]
+    exclusion1["Samples have no MPP information<br>(n=10)"]
+    step1["Run Classpose<br>(n=265)"]
+    step2["Feature extraction<br>(n=265)"]
+    step3["Feature summarisation<br>(n=265)"]
+    subgraph sg0 [Model training]
+        direction TB
+        exclusion2["<i>Gene1</i> mutation status not available<br>(n=25)"]
+        step4["<i>Gene1</i>mut prediction<br>(n=240)"]
+        exclusion2 --> step4
+        step5["<i>Gene2</i>mut prediction<br>(n=265)"]
+        step6["<i>Gene3</i>mut prediction<br>(n=265)"]
+    end
+    step0 ---- exclusion0 --- exclusion1 ---> step1 ---> step2 ---> step3 ---> sg0
+    class step0,step1,step2,step3,step4,step5,step6 step
+    class exclusion0,exclusion1,exclusion2 exclusion
+    class sg0 sg
