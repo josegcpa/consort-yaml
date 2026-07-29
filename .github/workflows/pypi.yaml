@@ -13,5 +13,7 @@ jobs:
     permissions:
       id-token: write  
     steps:
+    - name: Build using uv
+      uses: astral-sh/uv-build@v0.8.10
     - name: Publish package distributions to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
