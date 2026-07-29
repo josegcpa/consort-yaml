@@ -53,9 +53,13 @@ steps:
 Each step is a dict with the following keys:
 
 - **`name`** (str, required): The label displayed in the flowchart node.
+- **`id`** (str, optional): A custom node ID. If provided, this overrides
+  the auto-generated ID (`step0`, `step1`, etc.). Useful for referencing
+  nodes in `additional_links`.
 - **`exclusions`** (list, optional): A list of exclusion dicts, each with:
   - **`reason`** (str): The exclusion reason.
   - **`n`** (int): The number of samples excluded.
+  - **`id`** (str, optional): A custom node ID for the exclusion node.
 - **`subgraph`** (dict, optional): Renders the step as a subgraph containing
   nested steps. Contains:
   - **`direction`** (str, optional): Layout direction (`TD`, `LR`, `TB`, `RL`).
@@ -67,6 +71,27 @@ Each step is a dict with the following keys:
     computed from its own exclusions, but the running `n` is not decremented
     for subsequent steps.
   - Any other string (e.g. `"---"`): Used as the arrow style.
+
+### Additional links
+
+A top-level `additional_links` key can be used to add arbitrary connections
+between nodes. This is a list of strings in the format `"id1 link id2"`,
+where `link` is any Mermaid arrow style (e.g. `--->`, `---`, `-.->`).
+
+```yaml
+---
+n: 300
+steps:
+  - name: "Step A"
+    id: custom_a
+  - name: "Step B"
+    id: custom_b
+additional_links:
+  - "custom_a -.-> custom_b"
+```
+
+This is useful for adding cross-references or dashed links between nodes that
+are not adjacent in the flow.
 
 ### Example with subgraphs and `link: none`
 

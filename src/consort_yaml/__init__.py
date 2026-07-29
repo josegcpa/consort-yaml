@@ -153,7 +153,7 @@ class FlowchartBuilder:
         connection = ""
         for i, exclusion in enumerate(exclusions):
             n -= exclusion["n"]
-            eid = self._next_exclusion_id()
+            eid = exclusion.get("id") or self._next_exclusion_id()
             self._emit_node(eid, exclusion["reason"], exclusion["n"], indent)
             self._exclusion_ids.append(eid)
             arrow = EXCLUSION_ARROW_LONG if i == 0 else EXCLUSION_ARROW
@@ -179,7 +179,7 @@ class FlowchartBuilder:
             tuple[str, int]: The subgraph ID and the updated sample
             count.
         """
-        sg_id = self._next_subgraph_id()
+        sg_id = step.get("id") or self._next_subgraph_id()
         label = step.get("name", "")
         subgraph_def = step["subgraph"]
         direction = subgraph_def.get("direction", "TD")
@@ -253,7 +253,7 @@ class FlowchartBuilder:
                     ).lstrip(" ->-")
                     self._body_lines.append(INDENT * indent + standalone)
             else:
-                step_id = self._next_step_id()
+                step_id = step.get("id") or self._next_step_id()
                 self._emit_node(step_id, step["name"], node_n, indent)
                 self._step_ids.append(step_id)
                 n = parent_n if link == "none" else n
@@ -296,4 +296,6 @@ class FlowchartBuilder:
             lines.append(
                 f"{INDENT}class " + ",".join(self._subgraph_ids) + " sg"
             )
+        for link in data.get("additional_links", []):
+            lines.append(INDENT + link)
         return "\n".join(lines)

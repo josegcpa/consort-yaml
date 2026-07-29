@@ -231,3 +231,130 @@ class TestNestedSubgraphs:
         assert "subgraph sg1" in result
         assert "Deep step" in result
         assert "class sg0,sg1 sg" in result
+
+
+class TestCustomIds:
+    """Tests for custom id overrides."""
+
+    def test_custom_step_id(self):
+        """Test that a custom step id is used instead of auto-generated."""
+        data = {
+            "n": 100,
+            "steps": [
+                {"name": "Step A", "id": "my_custom_id"},
+            ],
+        }
+        builder = FlowchartBuilder()
+        result = builder.build(data)
+        assert "my_custom_id" in result
+        assert "step0" not in result
+
+    def test_custom_exclusion_id(self):
+        """Test that a custom exclusion id is used."""
+        data = {
+            "n": 100,
+            "steps": [
+                {
+                    "name": "Step A",
+                    "exclusions": [
+                        {
+                            "reason": "Reason",
+                            "n": 5,
+                            "id": "my_excl_id",
+                        },
+                    ],
+                },
+            ],
+        }
+        builder = FlowchartBuilder()
+        result = builder.build(data)
+        assert "my_excl_id" in result
+        assert "exclusion0" not in result
+
+    def test_custom_subgraph_id(self):
+        """Test that a custom subgraph id is used."""
+        data = {
+            "n": 100,
+            "steps": [
+                {
+                    "name": "Subgraph",
+                    "id": "my_sg",
+                    "subgraph": {
+                        "direction": "LR",
+                        "steps": [
+                            {"name": "Sub-step"},
+                        ],
+                    },
+                },
+            ],
+        }
+        builder = FlowchartBuilder()
+        result = builder.build(data)
+        assert "subgraph my_sg" in result
+        assert "sg0" not in result
+
+    def test_custom_id_in_class_assignment(self):
+        """Test that custom ids appear in class assignments."""
+        data = {
+            "n": 100,
+            "steps": [
+                {"name": "Step A", "id": "custom_a"},
+                {"name": "Step B", "id": "custom_b"},
+            ],
+        }
+        builder = FlowchartBuilder()
+        result = builder.build(data)
+        assert "class custom_a,custom_b step" in result
+
+
+class TestAdditionalLinks:
+    """Tests for additional_links feature."""
+
+    def test_additional_links_present(self):
+        """Test that additional links are appended to the output."""
+        data = {
+            "n": 100,
+            "steps": [
+                {"name": "Step A", "id": "node_a"},
+                {"name": "Step B", "id": "node_b"},
+            ],
+            "additional_links": [
+                "node_a -.-> node_b",
+            ],
+        }
+        builder = FlowchartBuilder()
+        result = builder.build(data)
+        assert "node_a -.-> node_b" in result
+
+    def test_no_additional_links(self):
+        """Test that output is fine without additional_links."""
+        data = {
+            "n": 100,
+            "steps": [
+                {"name": "Step A"},
+            ],
+        }
+        builder = FlowchartBuilder()
+        result = builder.build(data)
+        assert isinstance(result, str)
+
+    def test_multiple_additional_links(self):
+        """Test that multiple additional links are all present."""
+        data = {
+            "n": 100,
+            "steps": [
+                {"name": "A", "id": "a"},
+                {"name": "B", "id": "b"},
+                {"name": "C", "id": "c"},
+            ],
+            "additional_links": [
+                "a -.-> b",
+                "b ---> c",
+                "a ---> c",
+            ],
+        }
+        builder = FlowchartBuilder()
+        result = builder.build(data)
+        assert "a -.-> b" in result
+        assert "b ---> c" in result
+        assert "a ---> c" in result
