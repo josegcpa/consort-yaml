@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v7
     - name: Install uv
-      uses: astral-sh/setup-uv
+      uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
     - name: Build package
       run: uv build
     - name: Publish package distributions to PyPI
