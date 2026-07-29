@@ -5,7 +5,7 @@ Generate CONSORT-style flowcharts as [Mermaid](https://mermaid.js.org/) diagrams
 ## Installation
 
 ```bash
-uv add consort_yaml
+uv add consort-yaml
 ```
 
 ## CLI usage
