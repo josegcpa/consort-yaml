@@ -5,12 +5,12 @@ description = "Generate a CONSORT flowchart from YAML."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "pre-commit>=4.6.1",
     "pyyaml>=6.0.3",
 ]
 
 [dependency-groups]
 dev = [
+    "pre-commit>=4.6.1",
     "pytest>=8.0",
     "ruff>=0.8",
     "black>=24.0",
