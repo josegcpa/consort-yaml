@@ -20,6 +20,7 @@ __all__ = [
     "FlowchartBuilder",
     "load_yaml",
     "HEADER",
+    "DEFAULT_EXCLUSION_COLOR",
     "INDENT",
     "ARROW",
     "EXCLUSION_ARROW",
@@ -30,6 +31,8 @@ INDENT = "    "
 ARROW = " ---> "
 EXCLUSION_ARROW = " --- "
 EXCLUSION_ARROW_LONG = " ---- "
+
+DEFAULT_EXCLUSION_COLOR = "#ffdada"
 
 HEADER = """---
 config:
@@ -46,7 +49,7 @@ config:
             right: 0
 ---
 flowchart TD
-    classDef exclusion fill:#ffdada,stroke-width:1,stroke:black
+    classDef exclusion fill:{exclusion_color},stroke-width:1,stroke:black
     classDef step fill:white,stroke-width:1,stroke:black
     classDef sg fill:transparent,stroke-width:1,stroke:black
 """
@@ -85,6 +88,7 @@ class FlowchartBuilder:
         self._exclusion_ids: list[str] = []
         self._subgraph_ids: list[str] = []
         self._body_lines: list[str] = []
+        self._exclusion_styles: list[str] = []
 
     def _next_step_id(self) -> str:
         """Return the next unique step node ID."""
@@ -156,6 +160,10 @@ class FlowchartBuilder:
             eid = exclusion.get("id") or self._next_exclusion_id()
             self._emit_node(eid, exclusion["reason"], exclusion["n"], indent)
             self._exclusion_ids.append(eid)
+            if "color" in exclusion:
+                self._exclusion_styles.append(
+                    f"style {eid} fill:{exclusion['color']}"
+                )
             arrow = EXCLUSION_ARROW_LONG if i == 0 else EXCLUSION_ARROW
             connection += arrow + eid
         return connection, n
@@ -283,7 +291,9 @@ class FlowchartBuilder:
         n = data["n"]
         connection, _ = self._process_steps(data["steps"], n)
 
-        lines = [HEADER, ""]
+        exclusion_color = data.get("exclusion_color", DEFAULT_EXCLUSION_COLOR)
+        header = HEADER.replace("{exclusion_color}", exclusion_color)
+        lines = [header, ""]
         lines.extend(self._body_lines)
         lines.append(INDENT + connection)
         if self._step_ids:
@@ -296,6 +306,8 @@ class FlowchartBuilder:
             lines.append(
                 f"{INDENT}class " + ",".join(self._subgraph_ids) + " sg"
             )
+        for style_line in self._exclusion_styles:
+            lines.append(INDENT + style_line)
         for link in data.get("additional_links", []):
             lines.append(INDENT + link)
         return "\n".join(lines)

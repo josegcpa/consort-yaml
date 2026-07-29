@@ -358,3 +358,87 @@ class TestAdditionalLinks:
         assert "a -.-> b" in result
         assert "b ---> c" in result
         assert "a ---> c" in result
+
+
+class TestExclusionColors:
+    """Tests for exclusion color customization."""
+
+    def test_default_exclusion_color(self):
+        """Test that the default exclusion color is used."""
+        data = {
+            "n": 100,
+            "steps": [
+                {
+                    "name": "Step A",
+                    "exclusions": [
+                        {"reason": "Reason", "n": 5},
+                    ],
+                },
+            ],
+        }
+        builder = FlowchartBuilder()
+        result = builder.build(data)
+        assert "fill:#ffdada" in result
+
+    def test_global_exclusion_color(self):
+        """Test that a top-level exclusion_color overrides the default."""
+        data = {
+            "n": 100,
+            "exclusion_color": "#ffcccc",
+            "steps": [
+                {
+                    "name": "Step A",
+                    "exclusions": [
+                        {"reason": "Reason", "n": 5},
+                    ],
+                },
+            ],
+        }
+        builder = FlowchartBuilder()
+        result = builder.build(data)
+        assert "fill:#ffcccc" in result
+        assert "fill:#ffdada" not in result
+
+    def test_per_exclusion_color(self):
+        """Test that a per-exclusion color adds a style line."""
+        data = {
+            "n": 100,
+            "steps": [
+                {
+                    "name": "Step A",
+                    "exclusions": [
+                        {"reason": "Reason 1", "n": 5},
+                        {
+                            "reason": "Reason 2",
+                            "n": 3,
+                            "color": "#ff9999",
+                        },
+                    ],
+                },
+            ],
+        }
+        builder = FlowchartBuilder()
+        result = builder.build(data)
+        assert "style exclusion1 fill:#ff9999" in result
+
+    def test_per_exclusion_color_with_custom_id(self):
+        """Test that per-exclusion color works with custom ids."""
+        data = {
+            "n": 100,
+            "steps": [
+                {
+                    "name": "Step A",
+                    "exclusions": [
+                        {
+                            "reason": "Reason",
+                            "n": 5,
+                            "id": "my_excl",
+                            "color": "#ff0000",
+                        },
+                    ],
+                },
+            ],
+        }
+        builder = FlowchartBuilder()
+        result = builder.build(data)
+        assert "style my_excl fill:#ff0000" in result

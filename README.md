@@ -60,6 +60,9 @@ Each step is a dict with the following keys:
   - **`reason`** (str): The exclusion reason.
   - **`n`** (int): The number of samples excluded.
   - **`id`** (str, optional): A custom node ID for the exclusion node.
+  - **`color`** (str, optional): A custom fill color for this exclusion
+    node (e.g. `#ffcccc`). Overrides the default exclusion color for
+    this node only.
 - **`subgraph`** (dict, optional): Renders the step as a subgraph containing
   nested steps. Contains:
   - **`direction`** (str, optional): Layout direction (`TD`, `LR`, `TB`, `RL`).
@@ -71,6 +74,33 @@ Each step is a dict with the following keys:
     computed from its own exclusions, but the running `n` is not decremented
     for subsequent steps.
   - Any other string (e.g. `"---"`): Used as the arrow style.
+
+### Exclusion colors
+
+The default fill color for exclusion nodes is `#ffdada` (light red). This can
+be changed globally or per-exclusion:
+
+- **Top-level `exclusion_color`** (str, optional): Sets the default fill
+  color for all exclusion nodes.
+- **Per-exclusion `color`** (str, optional): Overrides the fill color for a
+  single exclusion node.
+
+```yaml
+---
+n: 300
+exclusion_color: "#ffcccc"
+steps:
+  - name: "Processing"
+    exclusions:
+      - reason: "Failed QC"
+        n: 10
+      - reason: "Missing data"
+        n: 5
+        color: "#ff9999"
+```
+
+In this example, all exclusions use `#ffcccc` except "Missing data" which
+uses `#ff9999`.
 
 ### Additional links
 
