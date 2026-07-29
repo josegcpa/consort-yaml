@@ -1,5 +1,5 @@
 [project]
-name = "consort_yaml"
+name = "consort-yaml"
 version = "0.1.0"
 description = "Generate a CONSORT flowchart from YAML."
 readme = "README.md"
